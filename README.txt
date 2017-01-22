@@ -13,17 +13,39 @@ API Usage
   >>> import wget
   >>> url = 'http://www.futurecrew.com/skaven/song_files/mp3/razorback.mp3'
   >>> filename = wget.download(url)
-  100% [................................................] 3841532 / 3841532>
+  70% [###################################               ]            75M / 107M
+
   >> filename
   'razorback.mp3'
 
-The skew that you see above is a documented side effect.
 Alternative progress bar:
 
   >>> wget.download(url, bar=bar_thermometer)
 
+TODO - I will do these by version 0.1.0
+====
+ * Implement a way to resume downloads.
+ * Add options to be more like the *nix wget utility.
+ * Implement download speed.
 
-ChangeLog
+
+ChangeLog - (For this current version - now maintained by JamieJackHerer)
+=========
+0.0.2-beta1
+ * Now uses human readable sizes r.e. it displays size in K/M/G/P (kilobytes/megabytes/gigabytes/petabytes)
+ * Progress bar uses '[####  ]' format instead of '[....   ]'
+ * Reformatted for Python 3.x
+ * Included 'hurry.filesize' as a dependency in setup.py
+
+
+Jamie Lindsey AKA JamieJackHerer <jackherer026@gmail.com>
+
++========================================================================+
+|********* Anything below this message has nothing to do with me ********|
+|********* but it is still implemented in the new versions **************|
+|********* any changes made will now be noted above *********************|
++========================================================================+
+ChangeLog - (For original package which seems to no longer be in development)
 =========
 2.2 (2014-07-19)
  * it again can download without -o option
@@ -91,5 +113,5 @@ Release Checklist
 | [ ] python setup.py sdist upload
 | [ ] tag hg version
 
--- 
+--
 anatoly techtonik <techtonik@gmail.com>

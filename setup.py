@@ -13,18 +13,21 @@ def get_version(relpath):
                 return line.split("'")[1]
 
 setup(
-    name='wget',
+    name='python3-wget',
     version=get_version('wget.py'),
-    author='anatoly techtonik <techtonik@gmail.com>',
-    url='http://bitbucket.org/techtonik/python-wget/',
+    author='anatoly techtonik <techtonik@gmail.com> | Jamie Lindsey AKA JamieJackHerer',
+    author_email='<jackherer026@gmail.com>',
+    url='https:github.com/jamiejackherer/python3-wget/',
 
-    description="pure python download utility",
+    description="pure python 3.x download utility",
     license="Public Domain",
+    install_requires=[
+          'hurry.filesize',
+    ],
     classifiers=[
         'Environment :: Console',
         'License :: Public Domain',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',

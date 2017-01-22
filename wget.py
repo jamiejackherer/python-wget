@@ -1,19 +1,23 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Download utility as an easy way to get file from the net
- 
+wget for python 3.x is a downloading utility for retrieving files over http(s).
+
   python -m wget <URL>
   python wget.py <URL>
 
-Downloads: http://pypi.python.org/pypi/wget/
-Development: http://bitbucket.org/techtonik/python-wget/
+Downloads: http://pypi.python.org/pypi/python3-wget/
+Development: https:github.com/jamiejackherer/python3-wget/
 
-wget.py is not option compatible with Unix wget utility,
+wget.py is not yet option compatible with Unix wget utility,
 to make command line interface intuitive for new people.
 
+Original author;
 Public domain by anatoly techtonik <techtonik@gmail.com>
 Also available under the terms of MIT license
 Copyright (c) 2010-2014 anatoly techtonik
+
+Current development;
+Contibution by Jamie Lindsey AKA JamieJackHerer <jackherer026@gmail.com>
 """
 
 
@@ -21,21 +25,20 @@ import sys, shutil, os
 import tempfile
 import math
 
-PY3K = sys.version_info >= (3, 0)
-if PY3K:
-  import urllib.request as urllib
-  import urllib.parse as urlparse
-else:
-  import urllib
-  import urlparse
+
+import urllib.request
+import urllib.parse
 
 
-__version__ = "2.3-beta1"
+from hurry.filesize import size
+
+# Due to re-release specifically for python 3.x I have started versions from scratch
+__version__ = "0.0.2-beta1"
 
 
 def filename_from_url(url):
     """:return: detected filename or None"""
-    fname = os.path.basename(urlparse.urlparse(url).path)
+    fname = os.path.basename(urllib.parse.urlparse(url).path)
     if len(fname.strip(" \n\t.")) == 0:
         return None
     return fname
@@ -73,7 +76,7 @@ def filename_fix_existing(filename):
     """Expands name portion of filename with numeric ' (x)' suffix to
     return filename that doesn't exist already.
     """
-    dirname = '.' 
+    dirname = '.'
     name, ext = filename.rsplit('.', 1)
     names = [x for x in os.listdir(dirname) if x.startswith(name)]
     names = [x.rsplit('.', 1)[0] for x in names]
@@ -86,7 +89,7 @@ def filename_fix_existing(filename):
     idx = 1
     if indexes:
         idx += sorted(indexes)[-1]
-    return '%s (%d).%s' % (name, idx, ext)
+    return '{0} {1}.{2}'.format(name, idx, ext)
 
 
 # --- terminal/console output helpers ---
@@ -150,10 +153,10 @@ def get_console_width():
 
 
 def bar_thermometer(current, total, width=80):
-    """Return thermometer style progress bar string. `total` argument
+    """Return progress bar string. `total` argument
     can not be zero. The minimum size of bar returned is 3. Example:
 
-        [..........            ]
+        [########            ]
 
     Control and trailing symbols (\r and spaces) are not included.
     See `bar_adaptive` for more information.
@@ -161,21 +164,21 @@ def bar_thermometer(current, total, width=80):
     # number of dots on thermometer scale
     avail_dots = width-2
     shaded_dots = int(math.floor(float(current) / total * avail_dots))
-    return '[' + '.'*shaded_dots + ' '*(avail_dots-shaded_dots) + ']'
+    return '[' + '#'*shaded_dots + ' '*(avail_dots-shaded_dots) + ']'
 
 def bar_adaptive(current, total, width=80):
     """Return progress bar string for given values in one of three
     styles depending on available width:
 
-        [..  ] downloaded / total
+        [##  ] downloaded / total
         downloaded / total
-        [.. ]
+        [## ]
 
     if total value is unknown or <= 0, show bytes counter using two
     adaptive styles:
 
-        %s / unknown
-        %s
+        {0} / unknown
+        {0}
 
     if there is not enough space on the screen, do not display anything
 
@@ -188,11 +191,11 @@ def bar_adaptive(current, total, width=80):
 
     # process special case when total size is unknown and return immediately
     if not total or total < 0:
-        msg = "%s / unknown" % current
+        msg = "{0} / unknown".format(current)
         if len(msg) < width:    # leaves one character to avoid linefeed
             return msg
-        if len("%s" % current) < width:
-            return "%s" % current
+        if len("{0}".format(current)) < width:
+            return "{0}".format(current)
 
     # --- adaptive layout algorithm ---
     #
@@ -203,14 +206,14 @@ def bar_adaptive(current, total, width=80):
     #   [x] choose top priority element min_width < avail_width
     #   [x] lessen avail_width by value if min_width
     #   [x] exclude element from priority list and repeat
-    
+
     #  10% [.. ]  10/100
     # pppp bbbbb sssssss
 
     min_width = {
       'percent': 4,  # 100%
       'bar': 3,      # [.]
-      'size': len("%s" % total)*2 + 3, # 'xxxx / yyyy'
+      'size': len("{0}".format(total))*2 + 3, # 'xxxx / yyyy'
     }
     priority = ['percent', 'bar', 'size']
 
@@ -228,13 +231,13 @@ def bar_adaptive(current, total, width=80):
 
       if field == 'percent':
         # fixed size width for percentage
-        output += ('%s%%' % (100 * current // total)).rjust(min_width['percent'])
+        output += ('{0}%'.format(100 * current // total).rjust(min_width['percent']))
       elif field == 'bar':  # [. ]
         # bar takes its min width + all available space
         output += bar_thermometer(current, total, min_width['bar']+avail)
       elif field == 'size':
         # size field has a constant width (min == max)
-        output += ("%s / %s" % (current, total)).rjust(min_width['size'])
+        output += ("{} / {}".format(size(current), size(total))).rjust(min_width['size'])
 
       selected = selected[1:]
       if selected:
@@ -264,7 +267,7 @@ def callback_progress(blocks, block_size, total_size, bar_function):
     :param bar_function: another callback function to visualize progress
     """
     global __current_size
- 
+
     width = min(100, get_console_width())
 
     if sys.version_info[:3] == (3, 3, 0):  # regression workaround
@@ -279,9 +282,9 @@ def callback_progress(blocks, block_size, total_size, bar_function):
     if progress:
         sys.stdout.write("\r" + progress)
 
-class ThrowOnErrorOpener(urllib.FancyURLopener):
+class ThrowOnErrorOpener(urllib.request.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
-        raise Exception("%s: %s" % (errcode, errmsg))
+        raise Exception("{0}: {1}".format(errcode, errmsg))
 
 def download(url, out=None, bar=bar_adaptive):
     """High level function, which downloads URL into tmp file in current
@@ -350,7 +353,7 @@ if __name__ == "__main__":
     filename = download(args[0], out=options.output)
 
     print("")
-    print("Saved under %s" % filename)
+    print("Saved under {0}".format(filename))
 
 r"""
 features that require more tuits for urlretrieve API
